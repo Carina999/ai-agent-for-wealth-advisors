@@ -2,626 +2,521 @@
 
 import { useState } from "react"
 import {
-  Search,
-  Bell,
-  Home,
-  Workflow,
-  BarChart3,
-  Settings,
   AlertTriangle,
-  RefreshCw,
-  MoreHorizontal,
-  Filter,
   TrendingUp,
-  TrendingDown,
+  Calendar,
+  FileText,
+  ChevronRight,
+  AlertCircle,
+  CheckCircle2,
   Clock,
-  CheckCircle,
-  XCircle,
-  ChevronDown,
-  Plus,
-  ArrowRight,
-  Users,
-  Eye,
-  Database,
+  DollarSign,
+  PieChart,
+  Target,
+  User,
+  Building,
+  Briefcase,
 } from "lucide-react"
-import { AreaChart, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area } from "recharts"
+import {
+  PieChart as RechartsPieChart,
+  Pie,
+  Cell,
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+} from "recharts"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-  DropdownMenuLabel,
-} from "@/components/ui/dropdown-menu"
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Progress } from "@/components/ui/progress"
+import { AdvisorLayout } from "@/components/advisor-layout"
+import {
+  clients,
+  carinaIPSData,
+  carinaRTQData,
+  carinaEstateData,
+  profileComparisonData,
+  aiSuggestedActions,
+  meetingTopics,
+} from "@/lib/mock-data"
 import Link from "next/link"
 
-// Sample data
-const metricsData = [
-  { label: "Total Workflows", value: "237", change: "+12%", trend: "up", icon: Workflow },
-  { label: "Success Rate", value: "98.7%", change: "+0.3%", trend: "up", icon: CheckCircle },
-  { label: "Avg Response", value: "38s", change: "-2.1s", trend: "up", icon: Clock },
-  { label: "Active Users", value: "1,423", change: "+8.2%", trend: "up", icon: Users },
-]
+const COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#6b7280"]
 
-const workflowData = [
-  {
-    id: 6734,
-    name: "Product Catalog Sync",
-    started: "22 Jun 2025, 10:48",
-    duration: "45.2s",
-    status: "running",
-    error: null,
-  },
-  {
-    id: 6733,
-    name: "Customer Webhook Listener",
-    started: "22 Jun 2025, 10:12",
-    duration: "30s",
-    status: "success",
-    error: null,
-  },
-  {
-    id: 6732,
-    name: "Data Enrichment Pipeline",
-    started: "22 Jun 2025, 09:45",
-    duration: "2m 15s",
-    status: "success",
-    error: null,
-  },
-  {
-    id: 6731,
-    name: "Analytics Refresh",
-    started: "22 Jun 2025, 09:30",
-    duration: "1m 8s",
-    status: "success",
-    error: null,
-  },
-  {
-    id: 6730,
-    name: "Billing Reconciliation",
-    started: "22 Jun 2025, 09:15",
-    duration: "3m 22s",
-    status: "success",
-    error: null,
-  },
-  {
-    id: 6729,
-    name: "Inventory Level Sync",
-    started: "22 Jun 2025, 08:58",
-    duration: "45s",
-    status: "failed",
-    error: "HTTP Error 404: Not Found",
-  },
-  {
-    id: 6728,
-    name: "KYC Data Update",
-    started: "22 Jun 2025, 08:45",
-    duration: "1m 12s",
-    status: "success",
-    error: null,
-  },
-  {
-    id: 6727,
-    name: "Monthly Log Archiver",
-    started: "22 Jun 2025, 08:30",
-    duration: "4m 33s",
-    status: "success",
-    error: null,
-  },
-]
+export default function ClientOverviewDashboard() {
+  const [selectedClientId] = useState("carina-voss")
+  const client = clients.find((c) => c.id === selectedClientId) || clients[0]
 
-const chartData = [
-  { name: "Jan", sales: 4000, views: 2400, workflows: 240 },
-  { name: "Feb", sales: 3000, views: 1398, workflows: 221 },
-  { name: "Mar", sales: 2000, views: 9800, workflows: 229 },
-  { name: "Apr", sales: 2780, views: 3908, workflows: 200 },
-  { name: "May", sales: 1890, views: 4800, workflows: 218 },
-  { name: "Jun", sales: 2390, views: 3800, workflows: 250 },
-  { name: "Jul", sales: 3490, views: 4300, workflows: 210 },
-]
+  // Prepare allocation comparison data for chart
+  const allocationComparisonData = [
+    {
+      name: "Equity",
+      IPS: carinaIPSData.targetAssetAllocation.allocations[0].targetAllocation,
+      RTQ: carinaRTQData.suggestedAssetAllocation.equity,
+    },
+    {
+      name: "Fixed Income",
+      IPS: carinaIPSData.targetAssetAllocation.allocations[1].targetAllocation,
+      RTQ: carinaRTQData.suggestedAssetAllocation.fixedIncome,
+    },
+    {
+      name: "Alternatives",
+      IPS: carinaIPSData.targetAssetAllocation.allocations[2].targetAllocation,
+      RTQ: carinaRTQData.suggestedAssetAllocation.alternatives,
+    },
+    {
+      name: "Cash",
+      IPS: carinaIPSData.targetAssetAllocation.allocations[3].targetAllocation,
+      RTQ: carinaRTQData.suggestedAssetAllocation.cash,
+    },
+  ]
 
-const teamMembers = [
-  {
-    name: "Clara Blackwood",
-    role: "Engineer",
-    status: "online",
-    avatar: "/placeholder.svg?height=32&width=32",
-    availability: "On-call",
-  },
-  {
-    name: "Michael Whitmore",
-    role: "Owner",
-    status: "online",
-    avatar: "/placeholder.svg?height=32&width=32",
-    availability: "Available",
-  },
-  {
-    name: "Dennis Brightwood",
-    role: "Engineer",
-    status: "away",
-    avatar: "/placeholder.svg?height=32&width=32",
-    availability: "Available in 2hrs",
-  },
-  {
-    name: "Sarah Chen",
-    role: "Designer",
-    status: "online",
-    avatar: "/placeholder.svg?height=32&width=32",
-    availability: "In meeting",
-  },
-]
+  // Prepare pie chart data for IPS allocation
+  const pieChartData = carinaIPSData.targetAssetAllocation.allocations.map((a) => ({
+    name: a.assetClass,
+    value: a.targetAllocation,
+  }))
 
-const recentActivity = [
-  { workflow: "Product Catalog Sync", time: "2 minutes ago", status: "success", duration: "45s" },
-  { workflow: "Customer Webhook", time: "5 minutes ago", status: "success", duration: "30s" },
-  { workflow: "Data Enrichment", time: "12 minutes ago", status: "success", duration: "2m 15s" },
-  { workflow: "Analytics Refresh", time: "18 minutes ago", status: "success", duration: "1m 8s" },
-  { workflow: "Inventory Sync", time: "32 minutes ago", status: "failed", duration: "45s" },
-]
-
-export default function Dashboard() {
-  const [selectedPeriod, setSelectedPeriod] = useState("Last 30 days")
+  const highPriorityAlerts = client.alerts.filter((a) => a.priority === "high")
+  const mismatchCount = profileComparisonData.filter((p) => p.status === "mismatch").length
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Header */}
-      <header className="h-16 border-b border-gray-200 bg-white px-6 flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-purple-600 to-blue-600 rounded-lg flex items-center justify-center">
-              <Workflow className="w-4 h-4 text-white" />
-            </div>
-            <span className="font-semibold text-gray-900">Emma</span>
+    <AdvisorLayout selectedClientId={selectedClientId}>
+      <div className="space-y-8">
+        {/* Page Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-semibold text-foreground">Client Overview</h1>
+            <p className="text-muted-foreground mt-1">
+              Comprehensive view of {client.name}&apos;s financial profile and documents
+            </p>
           </div>
-          <div className="text-sm text-gray-500">
-            <span>Dashboard</span> <span className="mx-1">/</span> <span>Overview</span>
+          <div className="flex items-center gap-3">
+            <Button variant="outline" className="gap-2">
+              <Calendar className="w-4 h-4" />
+              Schedule Meeting
+            </Button>
+            <Button className="gap-2 bg-primary hover:bg-primary/90">
+              <FileText className="w-4 h-4" />
+              Upload Document
+            </Button>
           </div>
         </div>
 
-        <div className="flex items-center gap-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-            <Input
-              placeholder="Search workflows, logs..."
-              className="pl-10 w-80 bg-gray-50 border-gray-200 focus:bg-white"
-            />
-          </div>
-          <Button variant="ghost" size="icon" className="relative">
-            <Bell className="w-4 h-4" />
-            <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-          </Button>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <Avatar className="w-8 h-8">
-                  <AvatarImage src="/placeholder.svg?height=32&width=32" />
-                  <AvatarFallback>AE</AvatarFallback>
-                </Avatar>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuLabel>Alex Evans</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>Profile</DropdownMenuItem>
-              <DropdownMenuItem>Settings</DropdownMenuItem>
-              <DropdownMenuItem>Support</DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>Sign out</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </header>
-
-      <div className="flex">
-        {/* Sidebar */}
-        <aside className="w-60 border-r border-gray-200 bg-white h-[calc(100vh-4rem)] overflow-y-auto">
-          <div className="p-4">
-            <div className="relative mb-6">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-              <Input placeholder="Search anything..." className="pl-10 bg-gray-50 border-gray-200 text-sm" />
-              <Button
-                size="icon"
-                variant="ghost"
-                className="absolute right-1 top-1/2 transform -translate-y-1/2 w-6 h-6"
-              >
-                <ArrowRight className="w-3 h-3" />
-              </Button>
-            </div>
-
-            <nav className="space-y-1">
-              <Link
-                href="/"
-                className="flex items-center w-full justify-start bg-purple-50 text-purple-700 hover:bg-purple-100 px-3 py-2 rounded-md text-sm font-medium"
-              >
-                <Home className="w-4 h-4 mr-3" />
-                Overview
-              </Link>
-              <Link
-                href="/workflows"
-                className="flex items-center w-full justify-start text-gray-600 hover:bg-gray-50 px-3 py-2 rounded-md text-sm font-medium"
-              >
-                <Workflow className="w-4 h-4 mr-3" />
-                Workflows
-              </Link>
-              <Link
-                href="/analytics"
-                className="flex items-center w-full justify-start text-gray-600 hover:bg-gray-50 px-3 py-2 rounded-md text-sm font-medium"
-              >
-                <BarChart3 className="w-4 h-4 mr-3" />
-                Analytics
-              </Link>
-              <Link
-                href="/templates"
-                className="flex items-center w-full justify-start text-gray-600 hover:bg-gray-50 px-3 py-2 rounded-md text-sm font-medium"
-              >
-                <Database className="w-4 h-4 mr-3" />
-                Templates
-              </Link>
-              <Link
-                href="/team"
-                className="flex items-center w-full justify-start text-gray-600 hover:bg-gray-50 px-3 py-2 rounded-md text-sm font-medium"
-              >
-                <Users className="w-4 h-4 mr-3" />
-                Team
-              </Link>
-              <Link
-                href="/settings"
-                className="flex items-center w-full justify-start text-gray-600 hover:bg-gray-50 px-3 py-2 rounded-md text-sm font-medium"
-              >
-                <Settings className="w-4 h-4 mr-3" />
-                Settings
-              </Link>
-            </nav>
-          </div>
-        </aside>
-
-        {/* Main Content */}
-        <main className="flex-1 p-8 bg-gray-50">
-          {/* Quick Actions Bar */}
-          <div className="mb-8">
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h1 className="text-2xl font-semibold text-gray-900">Dashboard Overview</h1>
-                <p className="text-gray-600 mt-1">Monitor your workflows and system performance</p>
-              </div>
-              <div className="flex items-center gap-3">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" className="gap-2 bg-transparent">
-                      {selectedPeriod} <ChevronDown className="w-4 h-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent>
-                    <DropdownMenuItem onClick={() => setSelectedPeriod("Last 7 days")}>Last 7 days</DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setSelectedPeriod("Last 30 days")}>Last 30 days</DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setSelectedPeriod("Last 90 days")}>Last 90 days</DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-                <Button className="bg-purple-600 hover:bg-purple-700">
-                  <Plus className="w-4 h-4 mr-2" />
-                  New Workflow
+        {/* Alert Banner */}
+        {highPriorityAlerts.length > 0 && (
+          <Card className="border-destructive/50 bg-destructive/5">
+            <CardContent className="p-4">
+              <div className="flex items-start gap-4">
+                <div className="w-10 h-10 rounded-full bg-destructive/10 flex items-center justify-center flex-shrink-0">
+                  <AlertTriangle className="w-5 h-5 text-destructive" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-foreground">
+                    {highPriorityAlerts.length} High Priority Alert{highPriorityAlerts.length > 1 ? "s" : ""} Detected
+                  </h3>
+                  <div className="mt-2 space-y-1">
+                    {highPriorityAlerts.map((alert) => (
+                      <p key={alert.id} className="text-sm text-muted-foreground flex items-center gap-2">
+                        <AlertCircle className="w-3 h-3 text-destructive" />
+                        {alert.description}
+                      </p>
+                    ))}
+                  </div>
+                </div>
+                <Button variant="outline" size="sm" className="border-destructive/50 text-destructive hover:bg-destructive/10">
+                  Review All
                 </Button>
               </div>
-            </div>
+            </CardContent>
+          </Card>
+        )}
 
-            {/* Quick Action Cards */}
-            <div className="grid grid-cols-3 gap-4 mb-8">
-              <Card className="p-6 hover:shadow-md transition-shadow cursor-pointer border-gray-200">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                    <Plus className="w-6 h-6 text-green-600" />
-                  </div>
-                  <div>
-                    <h3 className="font-medium text-gray-900">New workflow</h3>
-                    <p className="text-sm text-gray-600">Create a new automation</p>
-                  </div>
+        {/* Key Metrics */}
+        <div className="grid grid-cols-4 gap-6">
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                  <DollarSign className="w-5 h-5 text-primary" />
                 </div>
-              </Card>
+                <Badge variant="secondary" className="bg-green-100 text-green-700">
+                  <TrendingUp className="w-3 h-3 mr-1" />
+                  Active
+                </Badge>
+              </div>
+              <div className="text-2xl font-semibold text-foreground mb-1">
+                ${(client.totalAssets / 1000000).toFixed(2)}M
+              </div>
+              <div className="text-sm text-muted-foreground">Total Assets Under Management</div>
+            </CardContent>
+          </Card>
 
-              <Card className="p-6 hover:shadow-md transition-shadow cursor-pointer border-gray-200">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
-                    <AlertTriangle className="w-6 h-6 text-red-600" />
-                  </div>
-                  <div>
-                    <h3 className="font-medium text-gray-900">View breaches</h3>
-                    <p className="text-sm text-gray-600">Check failed workflows</p>
-                  </div>
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center">
+                  <AlertTriangle className="w-5 h-5 text-amber-600" />
                 </div>
-              </Card>
+                <Badge variant="secondary" className="bg-amber-100 text-amber-700">
+                  {mismatchCount} Issues
+                </Badge>
+              </div>
+              <div className="text-2xl font-semibold text-foreground mb-1">Profile Mismatch</div>
+              <div className="text-sm text-muted-foreground">IPS vs RTQ discrepancies found</div>
+            </CardContent>
+          </Card>
 
-              <Card className="p-6 hover:shadow-md transition-shadow cursor-pointer border-gray-200">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <RefreshCw className="w-6 h-6 text-blue-600" />
-                  </div>
-                  <div>
-                    <h3 className="font-medium text-gray-900">Re-run last failed</h3>
-                    <p className="text-sm text-gray-600">Retry failed executions</p>
-                  </div>
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                  <FileText className="w-5 h-5 text-blue-600" />
                 </div>
-              </Card>
-            </div>
+              </div>
+              <div className="text-2xl font-semibold text-foreground mb-1">{client.documents.length}</div>
+              <div className="text-sm text-muted-foreground">Documents Processed</div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                  <Calendar className="w-5 h-5 text-green-600" />
+                </div>
+              </div>
+              <div className="text-2xl font-semibold text-foreground mb-1">Apr 20</div>
+              <div className="text-sm text-muted-foreground">Next Scheduled Meeting</div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="grid grid-cols-3 gap-8">
+          {/* Left Column - Main Content */}
+          <div className="col-span-2 space-y-8">
+            {/* Profile Comparison */}
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="text-lg">Profile Comparison</CardTitle>
+                    <CardDescription>IPS vs Risk Tolerance Questionnaire Analysis</CardDescription>
+                  </div>
+                  <Link href="/client/rtq">
+                    <Button variant="ghost" size="sm" className="gap-1">
+                      View Details <ChevronRight className="w-4 h-4" />
+                    </Button>
+                  </Link>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {profileComparisonData.slice(0, 5).map((item, index) => (
+                    <div key={index} className="flex items-center gap-4 p-3 rounded-lg bg-muted/50">
+                      <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0">
+                        {item.status === "mismatch" ? (
+                          <AlertCircle className="w-5 h-5 text-destructive" />
+                        ) : item.status === "warning" ? (
+                          <AlertTriangle className="w-5 h-5 text-amber-500" />
+                        ) : (
+                          <CheckCircle2 className="w-5 h-5 text-green-500" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="font-medium text-foreground">{item.category}</span>
+                          <Badge
+                            variant={item.status === "aligned" ? "secondary" : "destructive"}
+                            className={
+                              item.status === "aligned"
+                                ? "bg-green-100 text-green-700"
+                                : item.status === "warning"
+                                  ? "bg-amber-100 text-amber-700"
+                                  : ""
+                            }
+                          >
+                            {item.status === "aligned" ? "Aligned" : item.status === "warning" ? "Review" : "Mismatch"}
+                          </Badge>
+                        </div>
+                        <div className="flex items-center gap-4 text-sm">
+                          <span className="text-muted-foreground">
+                            IPS: <span className="text-foreground">{item.ipsValue}</span>
+                          </span>
+                          <span className="text-muted-foreground">
+                            RTQ: <span className="text-foreground">{item.rtqValue}</span>
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Allocation Comparison Chart */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Asset Allocation Comparison</CardTitle>
+                <CardDescription>IPS Target vs RTQ Recommended Allocation</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="h-80 w-full">
+                  <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+                    <BarChart data={allocationComparisonData} layout="vertical">
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                      <XAxis type="number" domain={[0, 80]} stroke="#6b7280" fontSize={12} />
+                      <YAxis dataKey="name" type="category" stroke="#6b7280" fontSize={12} width={100} />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: "white",
+                          border: "1px solid #e5e7eb",
+                          borderRadius: "8px",
+                          boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+                        }}
+                        formatter={(value: number) => [`${value}%`, ""]}
+                      />
+                      <Legend />
+                      <Bar dataKey="IPS" fill="#3b82f6" name="IPS Target" radius={[0, 4, 4, 0]} />
+                      <Bar dataKey="RTQ" fill="#10b981" name="RTQ Suggested" radius={[0, 4, 4, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Account Summary */}
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="text-lg">Account Summary</CardTitle>
+                    <CardDescription>Portfolio accounts and beneficiary status</CardDescription>
+                  </div>
+                  <Link href="/client/ips">
+                    <Button variant="ghost" size="sm" className="gap-1">
+                      View IPS <ChevronRight className="w-4 h-4" />
+                    </Button>
+                  </Link>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {carinaIPSData.clientProfile.accounts.map((account, index) => (
+                    <div key={index} className="flex items-center justify-between p-4 rounded-lg border border-border">
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                          <Building className="w-5 h-5 text-primary" />
+                        </div>
+                        <div>
+                          <p className="font-medium text-foreground">{account.accountName}</p>
+                          <p className="text-sm text-muted-foreground">{account.accountType}</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-semibold text-foreground">
+                          ${account.approximateValue.toLocaleString()}
+                        </p>
+                        <Badge
+                          variant="secondary"
+                          className={
+                            account.beneficiaryStatus === "complete"
+                              ? "bg-green-100 text-green-700"
+                              : "bg-amber-100 text-amber-700"
+                          }
+                        >
+                          {account.beneficiaryStatus === "complete" ? "Beneficiary Set" : "Beneficiary Needed"}
+                        </Badge>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
           </div>
 
-          {/* Metrics Overview */}
-          <div className="grid grid-cols-4 gap-6 mb-8">
-            {metricsData.map((metric, index) => (
-              <Card key={index} className="border-gray-200">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                      <metric.icon className="w-5 h-5 text-gray-600" />
+          {/* Right Column - Sidebar */}
+          <div className="space-y-6">
+            {/* Client Profile Card */}
+            <Card>
+              <CardHeader className="pb-4">
+                <CardTitle className="text-lg">Client Profile</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center gap-4">
+                  <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
+                    <User className="w-8 h-8 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-foreground">{client.name}</h3>
+                    <p className="text-sm text-muted-foreground">{client.email}</p>
+                    <p className="text-sm text-muted-foreground">{client.phone}</p>
+                  </div>
+                </div>
+                <div className="pt-4 border-t border-border space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Risk Profile (IPS)</span>
+                    <Badge className="bg-primary/10 text-primary">{carinaIPSData.riskTolerance}</Badge>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Risk Profile (RTQ)</span>
+                    <Badge variant="secondary">{carinaRTQData.riskAssessment.riskProfile}</Badge>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Time Horizon (IPS)</span>
+                    <span className="text-sm font-medium">{carinaIPSData.timeHorizon}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">ESG Preference</span>
+                    <Badge variant="secondary" className="bg-green-100 text-green-700">Yes</Badge>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* IPS Allocation Pie Chart */}
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg">Target Allocation (IPS)</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="h-48 w-full">
+                  <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+                    <RechartsPieChart>
+                      <Pie
+                        data={pieChartData}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={50}
+                        outerRadius={70}
+                        paddingAngle={2}
+                        dataKey="value"
+                      >
+                        {pieChartData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: "white",
+                          border: "1px solid #e5e7eb",
+                          borderRadius: "8px",
+                        }}
+                        formatter={(value: number) => [`${value}%`, ""]}
+                      />
+                    </RechartsPieChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="grid grid-cols-2 gap-2 mt-2">
+                  {pieChartData.map((item, index) => (
+                    <div key={item.name} className="flex items-center gap-2 text-sm">
+                      <div
+                        className="w-3 h-3 rounded-full"
+                        style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                      />
+                      <span className="text-muted-foreground">{item.name}</span>
+                      <span className="font-medium ml-auto">{item.value}%</span>
                     </div>
-                    <div
-                      className={`flex items-center gap-1 text-sm ${metric.trend === "up" ? "text-green-600" : "text-red-600"}`}
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* AI Suggested Actions */}
+            <Card>
+              <CardHeader className="pb-4">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-lg">AI Suggestions</CardTitle>
+                  <Link href="/assistant">
+                    <Button variant="ghost" size="sm" className="gap-1">
+                      Ask AI <ChevronRight className="w-4 h-4" />
+                    </Button>
+                  </Link>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {aiSuggestedActions.slice(0, 4).map((action) => (
+                  <div
+                    key={action.id}
+                    className="p-3 rounded-lg bg-muted/50 border-l-4"
+                    style={{
+                      borderLeftColor:
+                        action.priority === "high"
+                          ? "#ef4444"
+                          : action.priority === "medium"
+                            ? "#f59e0b"
+                            : "#6b7280",
+                    }}
+                  >
+                    <div className="flex items-start gap-2">
+                      <Target className="w-4 h-4 mt-0.5 text-muted-foreground flex-shrink-0" />
+                      <div>
+                        <p className="text-sm font-medium text-foreground">{action.action}</p>
+                        <p className="text-xs text-muted-foreground mt-1">{action.category}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+
+            {/* Meeting Preparation */}
+            <Card>
+              <CardHeader className="pb-4">
+                <CardTitle className="text-lg">Meeting Prep Topics</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-2">
+                  {meetingTopics.slice(0, 5).map((topic, index) => (
+                    <li key={index} className="flex items-start gap-2 text-sm">
+                      <CheckCircle2 className="w-4 h-4 mt-0.5 text-muted-foreground flex-shrink-0" />
+                      <span className="text-muted-foreground">{topic}</span>
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+
+            {/* Documents Status */}
+            <Card>
+              <CardHeader className="pb-4">
+                <CardTitle className="text-lg">Document Status</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {client.documents.map((doc) => (
+                  <Link
+                    key={doc.id}
+                    href={`/client/${doc.type.toLowerCase()}`}
+                    className="flex items-center justify-between p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <FileText className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-sm font-medium">{doc.name}</span>
+                    </div>
+                    <Badge
+                      variant="secondary"
+                      className={
+                        doc.status === "processed"
+                          ? "bg-green-100 text-green-700"
+                          : doc.status === "processing"
+                            ? "bg-blue-100 text-blue-700"
+                            : "bg-gray-100 text-gray-700"
+                      }
                     >
-                      {metric.trend === "up" ? (
-                        <TrendingUp className="w-3 h-3" />
-                      ) : (
-                        <TrendingDown className="w-3 h-3" />
-                      )}
-                      {metric.change}
-                    </div>
-                  </div>
-                  <div className="text-2xl font-semibold text-gray-900 mb-1">{metric.value}</div>
-                  <div className="text-sm text-gray-600">{metric.label}</div>
-                </CardContent>
-              </Card>
-            ))}
+                      {doc.status}
+                    </Badge>
+                  </Link>
+                ))}
+              </CardContent>
+            </Card>
           </div>
-
-          <div className="grid grid-cols-3 gap-8">
-            {/* Main Content Area */}
-            <div className="col-span-2 space-y-8">
-              {/* Charts Section */}
-              <Card className="border-gray-200">
-                <CardHeader className="pb-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <CardTitle className="text-lg font-semibold">Performance Analytics</CardTitle>
-                      <CardDescription>Workflow execution trends and system metrics</CardDescription>
-                    </div>
-                    <Tabs defaultValue="workflows" className="w-auto">
-                      <TabsList className="grid w-full grid-cols-3">
-                        <TabsTrigger value="workflows">Workflows</TabsTrigger>
-                        <TabsTrigger value="sales">Sales</TabsTrigger>
-                        <TabsTrigger value="views">Views</TabsTrigger>
-                      </TabsList>
-                    </Tabs>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-80">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart data={chartData}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-                        <XAxis dataKey="name" stroke="#6b7280" fontSize={12} />
-                        <YAxis stroke="#6b7280" fontSize={12} />
-                        <Tooltip
-                          contentStyle={{
-                            backgroundColor: "white",
-                            border: "1px solid #e5e7eb",
-                            borderRadius: "8px",
-                            boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
-                          }}
-                        />
-                        <Area
-                          type="monotone"
-                          dataKey="workflows"
-                          stroke="#8b5cf6"
-                          fill="#8b5cf6"
-                          fillOpacity={0.1}
-                          strokeWidth={2}
-                        />
-                        <Area
-                          type="monotone"
-                          dataKey="sales"
-                          stroke="#3b82f6"
-                          fill="#3b82f6"
-                          fillOpacity={0.1}
-                          strokeWidth={2}
-                        />
-                      </AreaChart>
-                    </ResponsiveContainer>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Workflow Status Table */}
-              <Card className="border-gray-200">
-                <CardHeader className="pb-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <CardTitle className="text-lg font-semibold">Recent Workflow Runs</CardTitle>
-                      <CardDescription>Monitor your workflow executions and performance</CardDescription>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Button variant="outline" size="sm">
-                        <Filter className="w-4 h-4 mr-2" />
-                        Filter
-                      </Button>
-                      <Button variant="outline" size="sm">
-                        <Eye className="w-4 h-4 mr-2" />
-                        View All
-                      </Button>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="p-0">
-                  <Table>
-                    <TableHeader>
-                      <TableRow className="bg-gray-50">
-                        <TableHead className="font-medium text-gray-700">Run ID</TableHead>
-                        <TableHead className="font-medium text-gray-700">Workflow</TableHead>
-                        <TableHead className="font-medium text-gray-700">Started</TableHead>
-                        <TableHead className="font-medium text-gray-700">Duration</TableHead>
-                        <TableHead className="font-medium text-gray-700">Status</TableHead>
-                        <TableHead className="font-medium text-gray-700">Error</TableHead>
-                        <TableHead className="font-medium text-gray-700 w-12"></TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {workflowData.map((workflow) => (
-                        <TableRow key={workflow.id} className="hover:bg-gray-50">
-                          <TableCell className="font-mono text-sm">{workflow.id}</TableCell>
-                          <TableCell className="font-medium">{workflow.name}</TableCell>
-                          <TableCell className="text-gray-600">{workflow.started}</TableCell>
-                          <TableCell className="text-gray-600">{workflow.duration}</TableCell>
-                          <TableCell>
-                            {workflow.status === "running" && (
-                              <Badge variant="secondary" className="bg-blue-100 text-blue-700">
-                                <div className="w-2 h-2 bg-blue-500 rounded-full mr-2 animate-pulse"></div>
-                                Running
-                              </Badge>
-                            )}
-                            {workflow.status === "success" && (
-                              <Badge variant="secondary" className="bg-green-100 text-green-700">
-                                <CheckCircle className="w-3 h-3 mr-1" />
-                                Success
-                              </Badge>
-                            )}
-                            {workflow.status === "failed" && (
-                              <Badge variant="secondary" className="bg-red-100 text-red-700">
-                                <XCircle className="w-3 h-3 mr-1" />
-                                Failed
-                              </Badge>
-                            )}
-                          </TableCell>
-                          <TableCell className="text-gray-600 max-w-48 truncate">{workflow.error || "None"}</TableCell>
-                          <TableCell>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon" className="w-8 h-8">
-                                  <MoreHorizontal className="w-4 h-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuItem>View Details</DropdownMenuItem>
-                                <DropdownMenuItem>Re-run</DropdownMenuItem>
-                                <DropdownMenuItem>View Logs</DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem className="text-red-600">Cancel</DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Right Sidebar */}
-            <div className="space-y-6">
-              {/* Account Balance */}
-              <Card className="border-gray-200">
-                <CardHeader className="pb-4">
-                  <CardTitle className="text-lg font-semibold">Account Balance</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-semibold text-gray-900 mb-4">$1,423.25</div>
-                  <div className="space-y-3 mb-4">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">Monthly Credits</span>
-                      <span className="text-sm font-medium">$500.00</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">Usage This Month</span>
-                      <span className="text-sm font-medium">$76.75</span>
-                    </div>
-                    <Progress value={15} className="h-2" />
-                  </div>
-                  <div className="flex gap-2">
-                    <Button size="sm" className="flex-1">
-                      Add Credit
-                    </Button>
-                    <Button size="sm" variant="outline" className="flex-1 bg-transparent">
-                      Transfer
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Recent Activity */}
-              <Card className="border-gray-200">
-                <CardHeader className="pb-4">
-                  <CardTitle className="text-lg font-semibold">Recent Activity</CardTitle>
-                </CardHeader>
-                <CardContent className="p-0">
-                  <div className="space-y-0">
-                    {recentActivity.map((activity, index) => (
-                      <div
-                        key={index}
-                        className="flex items-center gap-3 p-4 hover:bg-gray-50 border-b border-gray-100 last:border-b-0"
-                      >
-                        <div
-                          className={`w-2 h-2 rounded-full ${activity.status === "success" ? "bg-green-500" : "bg-red-500"}`}
-                        ></div>
-                        <div className="flex-1 min-w-0">
-                          <div className="font-medium text-sm text-gray-900 truncate">{activity.workflow}</div>
-                          <div className="text-xs text-gray-600">
-                            {activity.time} • {activity.duration}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Team Status */}
-              <Card className="border-gray-200">
-                <CardHeader className="pb-4">
-                  <CardTitle className="text-lg font-semibold">Team Status</CardTitle>
-                </CardHeader>
-                <CardContent className="p-0">
-                  <div className="space-y-0">
-                    {teamMembers.map((member, index) => (
-                      <div
-                        key={index}
-                        className="flex items-center gap-3 p-4 hover:bg-gray-50 border-b border-gray-100 last:border-b-0"
-                      >
-                        <div className="relative">
-                          <Avatar className="w-8 h-8">
-                            <AvatarImage src={member.avatar || "/placeholder.svg"} />
-                            <AvatarFallback>
-                              {member.name
-                                .split(" ")
-                                .map((n) => n[0])
-                                .join("")}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div
-                            className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white ${
-                              member.status === "online" ? "bg-green-500" : "bg-gray-400"
-                            }`}
-                          ></div>
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="font-medium text-sm text-gray-900">{member.name}</div>
-                          <div className="text-xs text-gray-600">
-                            {member.role} • {member.availability}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        </main>
+        </div>
       </div>
-    </div>
+    </AdvisorLayout>
   )
 }
