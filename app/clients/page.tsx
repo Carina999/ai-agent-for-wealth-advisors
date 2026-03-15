@@ -34,7 +34,7 @@ export default function ClientsPage() {
   const alertCount = clients.reduce((sum, c) => sum + c.alerts.filter((a) => a.priority === "high").length, 0)
 
   return (
-    <AdvisorLayout selectedClientId="carina-voss">
+    <AdvisorLayout>
       <div className="space-y-8">
         {/* Page Header */}
         <div className="flex items-center justify-between">

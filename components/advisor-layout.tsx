@@ -36,12 +36,11 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible"
 import { clients } from "@/lib/mock-data"
+import { useClient } from "@/lib/client-context"
 import { cn } from "@/lib/utils"
 
 interface AdvisorLayoutProps {
   children: React.ReactNode
-  selectedClientId?: string
-  onClientChange?: (clientId: string) => void
 }
 
 // Global navigation (top bar) - pages that involve multiple clients
@@ -63,13 +62,12 @@ const documentNavigation = [
   { name: "Estate Dashboard", href: "/client/estate" },
 ]
 
-export function AdvisorLayout({ children, selectedClientId = "carina-voss", onClientChange }: AdvisorLayoutProps) {
+export function AdvisorLayout({ children }: AdvisorLayoutProps) {
   const pathname = usePathname()
-  const [currentClientId, setCurrentClientId] = useState(selectedClientId)
+  const { selectedClientId, setSelectedClientId, currentClient } = useClient()
   const [clientSearch, setClientSearch] = useState("")
   const [documentsOpen, setDocumentsOpen] = useState(true)
   
-  const currentClient = clients.find((c) => c.id === currentClientId) || clients[0]
   const alertCount = currentClient.alerts.filter((a) => a.priority === "high").length
 
   // Filter clients based on search
@@ -83,8 +81,7 @@ export function AdvisorLayout({ children, selectedClientId = "carina-voss", onCl
   }, [clientSearch])
 
   const handleClientChange = (clientId: string) => {
-    setCurrentClientId(clientId)
-    onClientChange?.(clientId)
+    setSelectedClientId(clientId)
   }
 
   // Check if current page is a global page (doesn't need client context)
@@ -173,7 +170,7 @@ export function AdvisorLayout({ children, selectedClientId = "carina-voss", onCl
                             ${(client.totalAssets / 1000000).toFixed(1)}M AUM
                           </p>
                         </div>
-                        {client.id === currentClientId && (
+                        {client.id === selectedClientId && (
                           <Badge variant="secondary" className="text-xs shrink-0">Current</Badge>
                         )}
                       </DropdownMenuItem>

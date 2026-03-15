@@ -35,13 +35,14 @@ import { Progress } from "@/components/ui/progress"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { AdvisorLayout } from "@/components/advisor-layout"
-import { carinaIPSData } from "@/lib/mock-data"
+import { useClient } from "@/lib/client-context"
 import Link from "next/link"
 
 const COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#6b7280"]
 
 export default function IPSDashboard() {
-  const { clientProfile, investmentObjectives, riskTolerance, timeHorizon, liquidityNeeds, returnGoal, targetAssetAllocation, advisorNotes, benchmarks } = carinaIPSData
+  const { ipsData, currentClient } = useClient()
+  const { clientProfile, investmentObjectives, riskTolerance, timeHorizon, liquidityNeeds, returnGoal, targetAssetAllocation, advisorNotes, benchmarks } = ipsData
 
   // Prepare pie chart data
   const pieChartData = targetAssetAllocation.allocations.map((a) => ({
@@ -59,7 +60,7 @@ export default function IPSDashboard() {
   }))
 
   return (
-    <AdvisorLayout selectedClientId="carina-voss">
+    <AdvisorLayout>
       <div className="space-y-8">
         {/* Page Header */}
         <div className="flex items-center justify-between">
@@ -494,7 +495,7 @@ export default function IPSDashboard() {
               </CardHeader>
               <CardContent>
                 <pre className="p-4 rounded-lg bg-muted text-sm overflow-auto max-h-[600px]">
-                  {JSON.stringify(carinaIPSData, null, 2)}
+                  {JSON.stringify(ipsData, null, 2)}
                 </pre>
               </CardContent>
             </Card>

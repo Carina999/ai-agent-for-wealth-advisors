@@ -32,13 +32,14 @@ import { Progress } from "@/components/ui/progress"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { AdvisorLayout } from "@/components/advisor-layout"
-import { carinaEstateData, carinaIPSData } from "@/lib/mock-data"
+import { useClient } from "@/lib/client-context"
 import Link from "next/link"
 
 const COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#6b7280"]
 
 export default function EstateDashboard() {
-  const { personalInformation, powerOfAttorney, beneficiaries, taxExemption, assetsAndRecipients, trusteeDuties, documentsNeeded, actionItems } = carinaEstateData
+  const { estateData, ipsData, currentClient } = useClient()
+  const { personalInformation, powerOfAttorney, beneficiaries, taxExemption, assetsAndRecipients, trusteeDuties, documentsNeeded, actionItems } = estateData as typeof estateData & { trusteeDuties?: string[], documentsNeeded?: Array<{ name: string, status: string }> }
 
   // Calculate completion stats
   const totalDocs = documentsNeeded.length
@@ -60,7 +61,7 @@ export default function EstateDashboard() {
   const actionRequiredCount = assetsAndRecipients.filter((a) => a.status === "action_required").length
 
   return (
-    <AdvisorLayout selectedClientId="carina-voss">
+    <AdvisorLayout>
       <div className="space-y-8">
         {/* Page Header */}
         <div className="flex items-center justify-between">
@@ -568,7 +569,7 @@ export default function EstateDashboard() {
               </CardHeader>
               <CardContent>
                 <pre className="p-4 rounded-lg bg-muted text-sm overflow-auto max-h-[600px]">
-                  {JSON.stringify(carinaEstateData, null, 2)}
+                  {JSON.stringify(estateData, null, 2)}
                 </pre>
               </CardContent>
             </Card>
