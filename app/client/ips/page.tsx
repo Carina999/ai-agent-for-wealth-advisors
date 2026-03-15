@@ -495,7 +495,7 @@ export default function IPSDashboard() {
               </CardHeader>
               <CardContent>
                 <pre className="p-4 rounded-lg bg-muted text-sm overflow-auto max-h-[600px]">
-                  {JSON.stringify(carinaIPSData, null, 2)}
+                  {JSON.stringify(ipsData, null, 2)}
                 </pre>
               </CardContent>
             </Card>
