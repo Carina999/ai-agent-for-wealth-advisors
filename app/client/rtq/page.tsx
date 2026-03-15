@@ -579,7 +579,7 @@ export default function RTQDashboard() {
               </CardHeader>
               <CardContent>
                 <pre className="p-4 rounded-lg bg-muted text-sm overflow-auto max-h-[600px]">
-                  {JSON.stringify(carinaRTQData, null, 2)}
+                  {JSON.stringify(rtqData, null, 2)}
                 </pre>
               </CardContent>
             </Card>
