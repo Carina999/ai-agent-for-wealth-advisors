@@ -529,36 +529,36 @@ export const clients: Client[] = [
       },
     ],
   },
-  {
-    id: "maria-garcia",
-    name: "Maria Garcia",
-    email: "maria.garcia@email.com",
-    phone: "(207) 555-0789",
-    advisor: "Penobscot Financial Advisors",
-    status: "pending",
-    totalAssets: 850000,
-    lastMeeting: "2025-01-10",
-    nextMeeting: "2025-04-05",
-    documents: [
-      {
-        id: "rtq-003",
-        name: "Risk Tolerance Questionnaire",
-        type: "RTQ",
-        uploadedAt: "2025-01-10",
-        status: "processing",
-      },
-    ],
-    alerts: [
-      {
-        id: "alert-004",
-        type: "info",
-        title: "Documents Processing",
-        description: "RTQ document is being analyzed",
-        priority: "low",
-        createdAt: "2025-03-10",
-      },
-    ],
-  },
+  // {
+  //   id: "maria-garcia",
+  //   name: "Maria Garcia",
+  //   email: "maria.garcia@email.com",
+  //   phone: "(207) 555-0789",
+  //   advisor: "Penobscot Financial Advisors",
+  //   status: "pending",
+  //   totalAssets: 850000,
+  //   lastMeeting: "2025-01-10",
+  //   nextMeeting: "2025-04-05",
+  //   documents: [
+  //     {
+  //       id: "rtq-003",
+  //       name: "Risk Tolerance Questionnaire",
+  //       type: "RTQ",
+  //       uploadedAt: "2025-01-10",
+  //       status: "processing",
+  //     },
+  //   ],
+  //   alerts: [
+  //     {
+  //       id: "alert-004",
+  //       type: "info",
+  //       title: "Documents Processing",
+  //       description: "RTQ document is being analyzed",
+  //       priority: "low",
+  //       createdAt: "2025-03-10",
+  //     },
+  //   ],
+  // },
 ]
 
 // AI Suggested Actions for Carina
