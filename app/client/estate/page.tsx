@@ -76,13 +76,23 @@ export default function EstateDashboard() {
             </p>
           </div>
           <div className="flex items-center gap-3">
-            <Button variant="outline" className="gap-2">
+            <Button 
+              variant="outline" 
+              className="gap-2"
+              onClick={() => window.open("/documents/Carina_Estate.pdf", "_blank")}
+            >
               <ExternalLink className="w-4 h-4" />
               View Original
             </Button>
-            <Button variant="outline" className="gap-2">
-              <Download className="w-4 h-4" />
-              Export PDF
+            <Button 
+              variant="outline" 
+              className="gap-2"
+              asChild
+            >
+              <a href="/documents/Carina_Estate.pdf" download>
+                <Download className="w-4 h-4" />
+                Export PDF
+              </a>
             </Button>
           </div>
         </div>

@@ -22,6 +22,7 @@ export interface Document {
   uploadedAt: string
   status: "processed" | "processing" | "pending"
   extractedData?: Record<string, unknown>
+  pdfPath?: string
 }
 
 export interface Alert {
@@ -408,6 +409,7 @@ export const clients: Client[] = [
         type: "IPS",
         uploadedAt: "2024-03-15",
         status: "processed",
+        pdfPath: "/documents/Carina_IPS.pdf",
       },
       {
         id: "rtq-001",
@@ -415,6 +417,7 @@ export const clients: Client[] = [
         type: "RTQ",
         uploadedAt: "2024-03-10",
         status: "processed",
+        pdfPath: "/documents/Carina_RTQ.pdf",
       },
       {
         id: "estate-001",
@@ -422,6 +425,7 @@ export const clients: Client[] = [
         type: "Estate",
         uploadedAt: "2024-03-20",
         status: "processed",
+        pdfPath: "/documents/Carina_Estate.pdf",
       },
     ],
     alerts: [

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import {
@@ -13,9 +13,10 @@ import {
   MessageSquare,
   Settings,
   ChevronDown,
-  ArrowRight,
+  ChevronRight,
   LogOut,
   User,
+  X,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -29,6 +30,11 @@ import {
   DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible"
 import { clients } from "@/lib/mock-data"
 import { cn } from "@/lib/utils"
 
@@ -38,92 +44,183 @@ interface AdvisorLayoutProps {
   onClientChange?: (clientId: string) => void
 }
 
-const navigation = [
-  { name: "Overview", href: "/", icon: Home },
+// Global navigation (top bar) - pages that involve multiple clients
+const globalNavigation = [
   { name: "Clients", href: "/clients", icon: Users },
-  { name: "Documents", href: "/documents", icon: FileText },
   { name: "Analytics", href: "/analytics", icon: BarChart3 },
-  { name: "AI Assistant", href: "/assistant", icon: MessageSquare },
   { name: "Settings", href: "/settings", icon: Settings },
+]
+
+// Client-specific navigation (sidebar) - pages for selected client
+const clientNavigation = [
+  { name: "Overview", href: "/", icon: Home },
+  { name: "All Documents", href: "/documents", icon: FileText },
+]
+
+const documentNavigation = [
+  { name: "IPS Dashboard", href: "/client/ips" },
+  { name: "RTQ Dashboard", href: "/client/rtq" },
+  { name: "Estate Dashboard", href: "/client/estate" },
 ]
 
 export function AdvisorLayout({ children, selectedClientId = "carina-voss", onClientChange }: AdvisorLayoutProps) {
   const pathname = usePathname()
   const [currentClientId, setCurrentClientId] = useState(selectedClientId)
+  const [clientSearch, setClientSearch] = useState("")
+  const [documentsOpen, setDocumentsOpen] = useState(true)
   
   const currentClient = clients.find((c) => c.id === currentClientId) || clients[0]
   const alertCount = currentClient.alerts.filter((a) => a.priority === "high").length
+
+  // Filter clients based on search
+  const filteredClients = useMemo(() => {
+    if (!clientSearch.trim()) return clients
+    const searchLower = clientSearch.toLowerCase()
+    return clients.filter((client) =>
+      client.name.toLowerCase().includes(searchLower) ||
+      client.email.toLowerCase().includes(searchLower)
+    )
+  }, [clientSearch])
 
   const handleClientChange = (clientId: string) => {
     setCurrentClientId(clientId)
     onClientChange?.(clientId)
   }
 
+  // Check if current page is a global page (doesn't need client context)
+  const isGlobalPage = pathname === "/clients" || pathname === "/analytics" || pathname === "/settings"
+
+  // Check if we're on a documents page
+  const isDocumentsPage = pathname.startsWith("/client/")
+
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
+      {/* Top Navigation Bar */}
       <header className="h-16 border-b border-border bg-background px-6 flex items-center justify-between sticky top-0 z-50">
         <div className="flex items-center gap-4">
+          {/* Logo */}
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
               <span className="text-primary-foreground font-bold text-sm">WA</span>
             </div>
             <span className="font-semibold text-foreground">Wealth Advisor</span>
           </div>
+          
           <div className="h-6 w-px bg-border mx-2" />
           
-          {/* Client Selector */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="gap-2 min-w-[200px] justify-between">
-                <div className="flex items-center gap-2">
-                  <Avatar className="w-6 h-6">
-                    <AvatarFallback className="text-xs bg-primary/10 text-primary">
-                      {currentClient.name.split(" ").map((n) => n[0]).join("")}
-                    </AvatarFallback>
-                  </Avatar>
-                  <span className="font-medium">{currentClient.name}</span>
-                </div>
-                <ChevronDown className="w-4 h-4 text-muted-foreground" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-[240px]">
-              <DropdownMenuLabel>Select Client</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              {clients.map((client) => (
-                <DropdownMenuItem
-                  key={client.id}
-                  onClick={() => handleClientChange(client.id)}
-                  className="flex items-center gap-2"
-                >
-                  <Avatar className="w-6 h-6">
-                    <AvatarFallback className="text-xs">
-                      {client.name.split(" ").map((n) => n[0]).join("")}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">{client.name}</p>
-                    <p className="text-xs text-muted-foreground">
-                      ${(client.totalAssets / 1000000).toFixed(1)}M AUM
-                    </p>
+          {/* Client Selector with Search */}
+          <div className="flex items-center gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="gap-2 min-w-[200px] justify-between">
+                  <div className="flex items-center gap-2">
+                    <Avatar className="w-6 h-6">
+                      <AvatarFallback className="text-xs bg-primary/10 text-primary">
+                        {currentClient.name.split(" ").map((n) => n[0]).join("")}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span className="font-medium">{currentClient.name}</span>
                   </div>
-                  {client.id === currentClientId && (
-                    <Badge variant="secondary" className="text-xs">Current</Badge>
+                  <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-[280px]">
+                <div className="p-2">
+                  <div className="relative">
+                    <Search className="absolute left-2.5 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                    <Input
+                      placeholder="Search clients..."
+                      value={clientSearch}
+                      onChange={(e) => setClientSearch(e.target.value)}
+                      className="pl-9 h-9 text-sm"
+                    />
+                    {clientSearch && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="absolute right-1 top-1/2 transform -translate-y-1/2 w-6 h-6"
+                        onClick={() => setClientSearch("")}
+                      >
+                        <X className="w-3 h-3" />
+                      </Button>
+                    )}
+                  </div>
+                </div>
+                <DropdownMenuSeparator />
+                <div className="max-h-[300px] overflow-y-auto">
+                  {filteredClients.length === 0 ? (
+                    <div className="p-4 text-center text-sm text-muted-foreground">
+                      No clients found
+                    </div>
+                  ) : (
+                    filteredClients.map((client) => (
+                      <DropdownMenuItem
+                        key={client.id}
+                        onClick={() => {
+                          handleClientChange(client.id)
+                          setClientSearch("")
+                        }}
+                        className="flex items-center gap-2 cursor-pointer"
+                      >
+                        <Avatar className="w-6 h-6">
+                          <AvatarFallback className="text-xs">
+                            {client.name.split(" ").map((n) => n[0]).join("")}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">{client.name}</p>
+                          <p className="text-xs text-muted-foreground">
+                            ${(client.totalAssets / 1000000).toFixed(1)}M AUM
+                          </p>
+                        </div>
+                        {client.id === currentClientId && (
+                          <Badge variant="secondary" className="text-xs shrink-0">Current</Badge>
+                        )}
+                      </DropdownMenuItem>
+                    ))
                   )}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
+                </div>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {/* Client Search Input (visible in header) */}
+            <div className="relative hidden lg:block">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+              <Input
+                placeholder="Search clients..."
+                value={clientSearch}
+                onChange={(e) => setClientSearch(e.target.value)}
+                className="pl-10 w-48 bg-muted/50 border-border focus:bg-background text-sm"
+              />
+            </div>
+          </div>
+
+          <div className="h-6 w-px bg-border mx-2" />
+
+          {/* Global Navigation Links */}
+          <nav className="flex items-center gap-1">
+            {globalNavigation.map((item) => {
+              const isActive = pathname === item.href
+              return (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  className={cn(
+                    "flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors",
+                    isActive
+                      ? "bg-primary/10 text-primary"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                  )}
+                >
+                  <item.icon className="w-4 h-4" />
+                  {item.name}
+                </Link>
+              )
+            })}
+          </nav>
         </div>
 
         <div className="flex items-center gap-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-            <Input
-              placeholder="Search clients, documents..."
-              className="pl-10 w-80 bg-muted/50 border-border focus:bg-background"
-            />
-          </div>
           <Button variant="ghost" size="icon" className="relative">
             <Bell className="w-4 h-4" />
             {alertCount > 0 && (
@@ -164,92 +261,124 @@ export function AdvisorLayout({ children, selectedClientId = "carina-voss", onCl
       </header>
 
       <div className="flex">
-        {/* Sidebar */}
-        <aside className="w-60 border-r border-border bg-background h-[calc(100vh-4rem)] overflow-y-auto sticky top-16">
-          <div className="p-4">
-            <div className="relative mb-6">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-              <Input placeholder="Search..." className="pl-10 bg-muted/50 border-border text-sm" />
-              <Button
-                size="icon"
-                variant="ghost"
-                className="absolute right-1 top-1/2 transform -translate-y-1/2 w-6 h-6"
-              >
-                <ArrowRight className="w-3 h-3" />
-              </Button>
-            </div>
+        {/* Left Sidebar - Client-Specific Navigation */}
+        {!isGlobalPage && (
+          <aside className="w-60 border-r border-border bg-background h-[calc(100vh-4rem)] overflow-y-auto sticky top-16">
+            <div className="p-4">
+              {/* Client Context Header */}
+              <div className="mb-6 p-3 bg-muted/50 rounded-lg">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">
+                  Viewing Client
+                </p>
+                <p className="font-semibold text-foreground">{currentClient.name}</p>
+                <p className="text-xs text-muted-foreground">
+                  ${(currentClient.totalAssets / 1000000).toFixed(2)}M AUM
+                </p>
+              </div>
 
-            <nav className="space-y-1">
-              {navigation.map((item) => {
-                const isActive = pathname === item.href || 
-                  (item.href !== "/" && pathname.startsWith(item.href))
-                return (
-                  <Link
-                    key={item.name}
-                    href={item.href}
-                    className={cn(
-                      "flex items-center w-full justify-start px-3 py-2 rounded-md text-sm font-medium transition-colors",
-                      isActive
-                        ? "bg-primary/10 text-primary"
-                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                    )}
-                  >
-                    <item.icon className="w-4 h-4 mr-3" />
-                    {item.name}
-                  </Link>
-                )
-              })}
-            </nav>
-
-            {/* Client Quick Links */}
-            <div className="mt-8">
-              <h3 className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-                Client Documents
-              </h3>
+              {/* Client Navigation */}
               <nav className="space-y-1">
+                {clientNavigation.map((item) => {
+                  const isActive = pathname === item.href
+                  return (
+                    <Link
+                      key={item.name}
+                      href={item.href}
+                      className={cn(
+                        "flex items-center w-full justify-start px-3 py-2 rounded-md text-sm font-medium transition-colors",
+                        isActive
+                          ? "bg-primary/10 text-primary"
+                          : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                      )}
+                    >
+                      <item.icon className="w-4 h-4 mr-3" />
+                      {item.name}
+                    </Link>
+                  )
+                })}
+
+                {/* Documents Section - Collapsible */}
+                <Collapsible open={documentsOpen} onOpenChange={setDocumentsOpen}>
+                  <CollapsibleTrigger asChild>
+                    <button
+                      className={cn(
+                        "flex items-center w-full justify-start px-3 py-2 rounded-md text-sm font-medium transition-colors",
+                        isDocumentsPage
+                          ? "bg-primary/10 text-primary"
+                          : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                      )}
+                    >
+                      <FileText className="w-4 h-4 mr-3" />
+                      Documents
+                      <ChevronRight className={cn(
+                        "w-4 h-4 ml-auto transition-transform",
+                        documentsOpen && "rotate-90"
+                      )} />
+                    </button>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="pl-7 mt-1 space-y-1">
+                    {documentNavigation.map((item) => {
+                      const isActive = pathname === item.href
+                      return (
+                        <Link
+                          key={item.name}
+                          href={item.href}
+                          className={cn(
+                            "flex items-center w-full justify-start px-3 py-2 rounded-md text-sm transition-colors",
+                            isActive
+                              ? "bg-primary/10 text-primary font-medium"
+                              : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                          )}
+                        >
+                          {item.name}
+                        </Link>
+                      )
+                    })}
+                  </CollapsibleContent>
+                </Collapsible>
+
+                {/* AI Assistant */}
                 <Link
-                  href="/client/ips"
+                  href="/assistant"
                   className={cn(
-                    "flex items-center w-full justify-start px-3 py-2 rounded-md text-sm transition-colors",
-                    pathname === "/client/ips"
-                      ? "bg-primary/10 text-primary font-medium"
+                    "flex items-center w-full justify-start px-3 py-2 rounded-md text-sm font-medium transition-colors",
+                    pathname === "/assistant"
+                      ? "bg-primary/10 text-primary"
                       : "text-muted-foreground hover:bg-muted hover:text-foreground"
                   )}
                 >
-                  <FileText className="w-4 h-4 mr-3" />
-                  IPS Dashboard
-                </Link>
-                <Link
-                  href="/client/rtq"
-                  className={cn(
-                    "flex items-center w-full justify-start px-3 py-2 rounded-md text-sm transition-colors",
-                    pathname === "/client/rtq"
-                      ? "bg-primary/10 text-primary font-medium"
-                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                  )}
-                >
-                  <FileText className="w-4 h-4 mr-3" />
-                  RTQ Dashboard
-                </Link>
-                <Link
-                  href="/client/estate"
-                  className={cn(
-                    "flex items-center w-full justify-start px-3 py-2 rounded-md text-sm transition-colors",
-                    pathname === "/client/estate"
-                      ? "bg-primary/10 text-primary font-medium"
-                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                  )}
-                >
-                  <FileText className="w-4 h-4 mr-3" />
-                  Estate Dashboard
+                  <MessageSquare className="w-4 h-4 mr-3" />
+                  AI Assistant
                 </Link>
               </nav>
+
+              {/* Alerts Summary */}
+              {alertCount > 0 && (
+                <div className="mt-8 p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
+                  <p className="text-xs font-semibold text-destructive uppercase tracking-wider mb-2">
+                    {alertCount} High Priority Alert{alertCount > 1 ? "s" : ""}
+                  </p>
+                  <div className="space-y-2">
+                    {currentClient.alerts
+                      .filter((a) => a.priority === "high")
+                      .slice(0, 2)
+                      .map((alert) => (
+                        <p key={alert.id} className="text-xs text-muted-foreground line-clamp-2">
+                          {alert.title}
+                        </p>
+                      ))}
+                  </div>
+                </div>
+              )}
             </div>
-          </div>
-        </aside>
+          </aside>
+        )}
 
         {/* Main Content */}
-        <main className="flex-1 p-8 bg-muted/30 min-h-[calc(100vh-4rem)]">
+        <main className={cn(
+          "flex-1 p-8 bg-muted/30 min-h-[calc(100vh-4rem)]",
+          isGlobalPage && "max-w-7xl mx-auto"
+        )}>
           {children}
         </main>
       </div>
