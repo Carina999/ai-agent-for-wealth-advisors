@@ -160,8 +160,8 @@ export default function AnalyticsPage() {
                   <CardDescription>Workflow executions over time</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="h-80 w-full">
-                    <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+                  <div className="h-80 w-full min-h-0">
+                    <ResponsiveContainer width="100%" height={320} minWidth={0}>
                       <AreaChart data={performanceData}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
                         <XAxis dataKey="name" stroke="#6b7280" fontSize={12} />
@@ -195,8 +195,8 @@ export default function AnalyticsPage() {
                   <CardDescription>Execution outcomes comparison</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="h-80 w-full">
-                    <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+                  <div className="h-80 w-full min-h-0">
+                    <ResponsiveContainer width="100%" height={320} minWidth={0}>
                       <BarChart data={performanceData}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
                         <XAxis dataKey="name" stroke="#6b7280" fontSize={12} />
@@ -225,8 +225,8 @@ export default function AnalyticsPage() {
                 <CardDescription>Performance trends over time</CardDescription>
               </CardHeader>
                 <CardContent>
-                  <div className="h-80 w-full">
-                    <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+                  <div className="h-80 w-full min-h-0">
+                    <ResponsiveContainer width="100%" height={320} minWidth={0}>
                       <LineChart data={performanceData}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
                         <XAxis dataKey="name" stroke="#6b7280" fontSize={12} />
@@ -262,8 +262,8 @@ export default function AnalyticsPage() {
                   <CardDescription>Execution breakdown by workflow type</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="h-80 w-full">
-                    <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+                  <div className="h-80 w-full min-h-0">
+                    <ResponsiveContainer width="100%" height={320} minWidth={0}>
                       <RechartsPieChart>
                         <Pie
                           data={workflowDistribution}
@@ -347,8 +347,8 @@ export default function AnalyticsPage() {
                   <CardDescription>Error rate over time</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="h-80 w-full">
-                    <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+                  <div className="h-80 w-full min-h-0">
+                    <ResponsiveContainer width="100%" height={320} minWidth={0}>
                       <LineChart data={performanceData}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
                         <XAxis dataKey="name" stroke="#6b7280" fontSize={12} />
