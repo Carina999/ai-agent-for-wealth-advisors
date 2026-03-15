@@ -796,7 +796,7 @@ export const johnSmithRTQData = {
   suggestedAssetAllocation: {
     equity: 55,
     fixedIncome: 35,
-    realAssets: 8,
+    alternatives: 8,
     cash: 2,
   },
   investmentConstraints: {
@@ -927,41 +927,54 @@ export const johnSmithEstateData = {
       },
     ],
   },
-  estatePlanningActions: [
+  trusteeDuties: [
+    "Manage and safeguard trust assets on behalf of beneficiaries.",
+    "Follow instructions outlined in the Revocable Living Trust document.",
+    "Make distributions to beneficiaries according to trust terms.",
+    "Maintain records and provide financial reporting for trust activities.",
+    "Act in the best fiduciary interest of the beneficiaries.",
+    "Coordinate with advisors and professionals (legal, tax, investment) when managing trust assets.",
+  ],
+  documentsNeeded: [
+    { document: "Revocable Living Trust", priority: "High", status: "complete" },
+    { document: "Last Will and Testament", priority: "High", status: "complete" },
+    { document: "Healthcare Power of Attorney", priority: "High", status: "complete" },
+    { document: "Durable Power of Attorney (Financial)", priority: "High", status: "complete" },
+    { document: "Living Will / Advance Directive", priority: "High", status: "complete" },
+    { document: "Beneficiary Designations (Retirement)", priority: "High", status: "complete" },
+    { document: "Asset Retitling to Trust", priority: "Medium", status: "pending" },
+    { document: "HIPAA Authorization", priority: "Medium", status: "complete" },
+  ],
+  actionItems: [
     {
       id: 1,
       action: "Transfer primary residence and joint brokerage to Revocable Living Trust",
       responsible: "John + Sarah + Estate Attorney",
       status: "In Progress",
-      deadline: "2025-06-30",
     },
     {
       id: 2,
       action: "Review and update beneficiary designations after relocation to Maine",
       responsible: "John + Financial Advisor",
       status: "Scheduled",
-      deadline: "2026-01-15",
     },
     {
       id: 3,
       action: "Establish Donor Advised Fund for charitable giving",
       responsible: "John + Sarah + Financial Advisor",
-      status: "Under Consideration",
-      deadline: "2025-12-31",
+      status: "Pending",
     },
     {
       id: 4,
       action: "Review life insurance needs post-retirement",
       responsible: "John + Sarah + Insurance Advisor",
       status: "Pending",
-      deadline: "2026-06-30",
     },
     {
       id: 5,
       action: "Update will to include specific bequests and charitable gifts",
       responsible: "John + Sarah + Estate Attorney",
       status: "Pending",
-      deadline: "2025-09-30",
     },
   ],
 }
