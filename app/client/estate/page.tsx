@@ -569,7 +569,7 @@ export default function EstateDashboard() {
               </CardHeader>
               <CardContent>
                 <pre className="p-4 rounded-lg bg-muted text-sm overflow-auto max-h-[600px]">
-                  {JSON.stringify(carinaEstateData, null, 2)}
+                  {JSON.stringify(estateData, null, 2)}
                 </pre>
               </CardContent>
             </Card>
