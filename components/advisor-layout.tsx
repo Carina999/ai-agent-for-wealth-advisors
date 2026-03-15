@@ -183,16 +183,6 @@ export function AdvisorLayout({ children, selectedClientId = "carina-voss", onCl
               </DropdownMenuContent>
             </DropdownMenu>
 
-            {/* Client Search Input (visible in header) */}
-            <div className="relative hidden lg:block">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-              <Input
-                placeholder="Search clients..."
-                value={clientSearch}
-                onChange={(e) => setClientSearch(e.target.value)}
-                className="pl-10 w-48 bg-muted/50 border-border focus:bg-background text-sm"
-              />
-            </div>
           </div>
 
           <div className="h-6 w-px bg-border mx-2" />
