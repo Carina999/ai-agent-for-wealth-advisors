@@ -107,15 +107,23 @@ export default function RTQDashboard() {
             </p>
           </div>
           <div className="flex items-center gap-3">
-            <Button
-              variant="outline"
+            <Button 
+              variant="outline" 
+              className="gap-2"
+              onClick={() => window.open("/documents/Carina_RTQ.pdf", "_blank")}
+            >
+              <ExternalLink className="w-4 h-4" />
+              View Original
+            </Button>
+            <Button 
+              variant="outline" 
               className="gap-2"
               asChild
             >
-              <Link href="/documents">
-                <ExternalLink className="w-4 h-4" />
-                Upload / View Documents
-              </Link>
+              <a href="/documents/Carina_RTQ.pdf" download>
+                <Download className="w-4 h-4" />
+                Export PDF
+              </a>
             </Button>
           </div>
         </div>

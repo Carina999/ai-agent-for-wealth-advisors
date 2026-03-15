@@ -75,15 +75,23 @@ export default function IPSDashboard() {
             </p>
           </div>
           <div className="flex items-center gap-3">
-            <Button
-              variant="outline"
+            <Button 
+              variant="outline" 
+              className="gap-2"
+              onClick={() => window.open("/documents/Carina_IPS.pdf", "_blank")}
+            >
+              <ExternalLink className="w-4 h-4" />
+              View Original
+            </Button>
+            <Button 
+              variant="outline" 
               className="gap-2"
               asChild
             >
-              <Link href="/documents">
-                <ExternalLink className="w-4 h-4" />
-                Upload / View Documents
-              </Link>
+              <a href="/documents/Carina_IPS.pdf" download>
+                <Download className="w-4 h-4" />
+                Export PDF
+              </a>
             </Button>
           </div>
         </div>
@@ -366,8 +374,8 @@ export default function IPSDashboard() {
                   <CardDescription>Target allocation with allowable drift ranges</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="h-64 w-full min-h-0">
-                    <ResponsiveContainer width="100%" height={256} minWidth={0}>
+<div className="h-64 w-full min-h-0">
+                      <ResponsiveContainer width="100%" height={256} minWidth={0}>
                       <BarChart data={rangeChartData} layout="vertical">
                         <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                         <XAxis type="number" domain={[0, 100]} stroke="#6b7280" fontSize={12} />
