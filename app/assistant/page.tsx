@@ -455,7 +455,7 @@ How can I help you prepare for your next client meeting?`,
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              {aiSuggestedActions.slice(0, 3).map((action) => (
+              {aiSuggestions.slice(0, 3).map((action) => (
                 <div
                   key={action.id}
                   className="p-3 rounded-lg bg-muted/50 border-l-4"
