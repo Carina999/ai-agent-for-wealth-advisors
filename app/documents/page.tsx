@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback } from "react"
+import { useState, useCallback, useEffect } from "react"
 import { AdvisorLayout } from "@/components/advisor-layout"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -40,23 +40,72 @@ import {
   Clock,
   AlertCircle,
   File,
+  Loader2,
 } from "lucide-react"
+
+interface BlobDocument {
+  pathname: string
+  filename: string
+  size?: number
+  uploadedAt?: string
+}
 
 export default function DocumentsPage() {
   const [selectedClient] = useState(clients[0])
   const [searchQuery, setSearchQuery] = useState("")
   const [viewingDocument, setViewingDocument] = useState<Document | null>(null)
   const [uploadedFiles, setUploadedFiles] = useState<Document[]>([])
+  const [blobDocuments, setBlobDocuments] = useState<BlobDocument[]>([])
   const [isDragging, setIsDragging] = useState(false)
+  const [isUploading, setIsUploading] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
 
-  // Combine existing documents with uploaded ones
-  const allDocuments = [...selectedClient.documents, ...uploadedFiles]
+  // Fetch documents from Blob storage on mount
+  useEffect(() => {
+    fetchBlobDocuments()
+  }, [])
+
+  const fetchBlobDocuments = async () => {
+    try {
+      const response = await fetch('/api/documents')
+      if (response.ok) {
+        const data = await response.json()
+        setBlobDocuments(data.files || [])
+      }
+    } catch (error) {
+      console.error('Error fetching documents:', error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // Convert blob documents to Document format
+  const blobDocsAsDocuments: Document[] = blobDocuments.map((blob, index) => ({
+    id: `blob-${index}`,
+    name: blob.filename.replace(/\.[^/.]+$/, ""),
+    type: detectDocumentType(blob.filename),
+    uploadedAt: blob.uploadedAt || new Date().toISOString().split("T")[0],
+    status: "processed" as const,
+    pdfPath: `/api/file?pathname=${encodeURIComponent(blob.pathname)}`,
+  }))
+
+  // Combine mock documents with blob documents and uploaded ones
+  const allDocuments = [...selectedClient.documents, ...blobDocsAsDocuments, ...uploadedFiles]
 
   // Filter documents based on search
   const filteredDocuments = allDocuments.filter((doc) =>
     doc.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     doc.type.toLowerCase().includes(searchQuery.toLowerCase())
   )
+
+  function detectDocumentType(filename: string): Document["type"] {
+    const lowerName = filename.toLowerCase()
+    if (lowerName.includes("ips") || lowerName.includes("investment policy")) return "IPS"
+    if (lowerName.includes("rtq") || lowerName.includes("risk tolerance")) return "RTQ"
+    if (lowerName.includes("estate")) return "Estate"
+    if (lowerName.includes("tax")) return "Tax"
+    return "Other"
+  }
 
   const getStatusBadge = (status: Document["status"]) => {
     switch (status) {
@@ -128,7 +177,7 @@ export default function DocumentsPage() {
     }
   }, [])
 
-  const handleFiles = (files: File[]) => {
+  const handleFiles = async (files: File[]) => {
     const validExtensions = [".pdf", ".docx", ".txt"]
     const validFiles = files.filter((file) => {
       const ext = "." + file.name.split(".").pop()?.toLowerCase()
@@ -140,26 +189,50 @@ export default function DocumentsPage() {
       return
     }
 
-    const newDocuments: Document[] = validFiles.map((file, index) => ({
-      id: `upload-${Date.now()}-${index}`,
+    setIsUploading(true)
+
+    // Add temporary processing documents
+    const tempDocs: Document[] = validFiles.map((file, index) => ({
+      id: `temp-${Date.now()}-${index}`,
       name: file.name.replace(/\.[^/.]+$/, ""),
-      type: "Other" as const,
+      type: detectDocumentType(file.name),
       uploadedAt: new Date().toISOString().split("T")[0],
       status: "processing" as const,
     }))
 
-    setUploadedFiles((prev) => [...prev, ...newDocuments])
+    setUploadedFiles((prev) => [...prev, ...tempDocs])
 
-    // Simulate processing completion after 3 seconds
-    setTimeout(() => {
-      setUploadedFiles((prev) =>
-        prev.map((doc) =>
-          newDocuments.some((nd) => nd.id === doc.id)
-            ? { ...doc, status: "processed" as const }
-            : doc
-        )
-      )
-    }, 3000)
+    // Upload each file to Blob storage
+    for (const file of validFiles) {
+      try {
+        const formData = new FormData()
+        formData.append('file', file)
+
+        const response = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData,
+        })
+
+        if (response.ok) {
+          const data = await response.json()
+          // Add to blob documents
+          setBlobDocuments((prev) => [...prev, {
+            pathname: data.pathname,
+            filename: data.filename,
+            size: data.size,
+            uploadedAt: new Date().toISOString(),
+          }])
+        } else {
+          console.error('Upload failed:', await response.text())
+        }
+      } catch (error) {
+        console.error('Upload error:', error)
+      }
+    }
+
+    // Remove temporary documents
+    setUploadedFiles((prev) => prev.filter((doc) => !tempDocs.some((td) => td.id === doc.id)))
+    setIsUploading(false)
   }
 
   return (
@@ -191,7 +264,7 @@ export default function DocumentsPage() {
           <CardHeader>
             <CardTitle className="text-lg">Upload Documents</CardTitle>
             <CardDescription>
-              Upload PDF, DOCX, or TXT files for processing
+              Upload PDF, DOCX, or TXT files for processing. Files are securely stored in Vercel Blob storage.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -205,6 +278,7 @@ export default function DocumentsPage() {
                   ? "border-primary bg-primary/5" 
                   : "border-border hover:border-primary/50 hover:bg-muted/50"
                 }
+                ${isUploading ? "pointer-events-none opacity-50" : ""}
               `}
             >
               <input
@@ -212,15 +286,27 @@ export default function DocumentsPage() {
                 accept=".pdf,.docx,.txt"
                 multiple
                 onChange={handleFileInput}
+                disabled={isUploading}
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
               />
-              <Upload className={`w-10 h-10 mx-auto mb-4 ${isDragging ? "text-primary" : "text-muted-foreground"}`} />
-              <p className="text-sm font-medium text-foreground mb-1">
-                {isDragging ? "Drop files here" : "Drag and drop files here"}
-              </p>
-              <p className="text-xs text-muted-foreground mb-4">
-                or click to browse
-              </p>
+              {isUploading ? (
+                <>
+                  <Loader2 className="w-10 h-10 mx-auto mb-4 text-primary animate-spin" />
+                  <p className="text-sm font-medium text-foreground mb-1">
+                    Uploading files...
+                  </p>
+                </>
+              ) : (
+                <>
+                  <Upload className={`w-10 h-10 mx-auto mb-4 ${isDragging ? "text-primary" : "text-muted-foreground"}`} />
+                  <p className="text-sm font-medium text-foreground mb-1">
+                    {isDragging ? "Drop files here" : "Drag and drop files here"}
+                  </p>
+                  <p className="text-xs text-muted-foreground mb-4">
+                    or click to browse
+                  </p>
+                </>
+              )}
               <div className="flex items-center justify-center gap-2">
                 <Badge variant="secondary">PDF</Badge>
                 <Badge variant="secondary">DOCX</Badge>
@@ -235,7 +321,7 @@ export default function DocumentsPage() {
           <CardHeader>
             <CardTitle className="text-lg">Client Documents</CardTitle>
             <CardDescription>
-              {filteredDocuments.length} document{filteredDocuments.length !== 1 ? "s" : ""} found
+              {isLoading ? "Loading..." : `${filteredDocuments.length} document${filteredDocuments.length !== 1 ? "s" : ""} found`}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -250,7 +336,13 @@ export default function DocumentsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredDocuments.length === 0 ? (
+                {isLoading ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center py-8">
+                      <Loader2 className="w-6 h-6 mx-auto animate-spin text-muted-foreground" />
+                    </TableCell>
+                  </TableRow>
+                ) : filteredDocuments.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
                       No documents found
@@ -298,14 +390,12 @@ export default function DocumentsPage() {
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               disabled={!doc.pdfPath}
-                              onClick={() => {
-                                if (doc.pdfPath) {
-                                  window.open(doc.pdfPath, "_blank")
-                                }
-                              }}
+                              asChild
                             >
-                              <Download className="w-4 h-4 mr-2" />
-                              Download
+                              <a href={doc.pdfPath} download>
+                                <Download className="w-4 h-4 mr-2" />
+                                Download
+                              </a>
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -354,10 +444,12 @@ export default function DocumentsPage() {
             {viewingDocument?.pdfPath && (
               <Button
                 variant="outline"
-                onClick={() => window.open(viewingDocument.pdfPath, "_blank")}
+                asChild
               >
-                <Download className="w-4 h-4 mr-2" />
-                Download
+                <a href={viewingDocument.pdfPath} download>
+                  <Download className="w-4 h-4 mr-2" />
+                  Download
+                </a>
               </Button>
             )}
             <Button variant="outline" onClick={() => setViewingDocument(null)}>

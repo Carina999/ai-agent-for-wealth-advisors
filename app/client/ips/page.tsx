@@ -78,20 +78,12 @@ export default function IPSDashboard() {
             <Button
               variant="outline"
               className="gap-2"
-              onClick={() => window.open("/documents/Carina_IPS.pdf", "_blank")}
-            >
-              <ExternalLink className="w-4 h-4" />
-              View Original
-            </Button>
-            <Button
-              variant="outline"
-              className="gap-2"
               asChild
             >
-              <a href="/lib/Carina_IPS.pdf" download>
-                <Download className="w-4 h-4" />
-                Export PDF
-              </a>
+              <Link href="/documents">
+                <ExternalLink className="w-4 h-4" />
+                Upload / View Documents
+              </Link>
             </Button>
           </div>
         </div>
