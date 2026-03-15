@@ -266,8 +266,8 @@ export default function ClientOverviewDashboard() {
                 <CardDescription>IPS Target vs RTQ Recommended Allocation</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="h-80 w-full">
-                  <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+                <div className="h-80 w-full min-h-0">
+                  <ResponsiveContainer width="100%" height={320} minWidth={0}>
                     <BarChart data={allocationComparisonData} layout="vertical">
                       <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                       <XAxis type="number" domain={[0, 80]} stroke="#6b7280" fontSize={12} />
@@ -385,8 +385,8 @@ export default function ClientOverviewDashboard() {
                 <CardTitle className="text-lg">Target Allocation (IPS)</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="h-48 w-full">
-                  <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+                <div className="h-48 w-full min-h-0">
+                  <ResponsiveContainer width="100%" height={192} minWidth={0}>
                     <RechartsPieChart>
                       <Pie
                         data={pieChartData}

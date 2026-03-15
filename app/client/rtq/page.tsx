@@ -332,8 +332,8 @@ export default function RTQDashboard() {
                     <CardTitle className="text-lg">RTQ Suggested Allocation</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="h-48 w-full">
-                      <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+                    <div className="h-48 w-full min-h-0">
+                      <ResponsiveContainer width="100%" height={192} minWidth={0}>
                         <RechartsPieChart>
                           <Pie
                             data={pieChartData}
@@ -447,8 +447,8 @@ export default function RTQDashboard() {
                 <CardDescription>Visual representation of risk factor scores</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="h-80 w-full">
-                  <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+                <div className="h-80 w-full min-h-0">
+                  <ResponsiveContainer width="100%" height={320} minWidth={0}>
                     <RadarChart data={radarData}>
                       <PolarGrid stroke="#e5e7eb" />
                       <PolarAngleAxis dataKey="factor" tick={{ fill: "#6b7280", fontSize: 12 }} />
@@ -483,8 +483,8 @@ export default function RTQDashboard() {
                 <CardDescription>RTQ Suggested vs IPS Target Allocation</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="h-80 w-full">
-                  <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+                <div className="h-80 w-full min-h-0">
+                  <ResponsiveContainer width="100%" height={320} minWidth={0}>
                     <BarChart data={allocationComparison}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                       <XAxis dataKey="name" stroke="#6b7280" fontSize={12} />

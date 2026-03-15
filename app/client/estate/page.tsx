@@ -300,8 +300,8 @@ export default function EstateDashboard() {
                     <CardTitle className="text-lg">Estate Value Breakdown</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="h-48 w-full">
-                      <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+                    <div className="h-48 w-full min-h-0">
+                      <ResponsiveContainer width="100%" height={192} minWidth={0}>
                         <RechartsPieChart>
                           <Pie
                             data={assetChartData}
