@@ -42,13 +42,14 @@ import { Progress } from "@/components/ui/progress"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { AdvisorLayout } from "@/components/advisor-layout"
-import { carinaRTQData, carinaIPSData, profileComparisonData } from "@/lib/mock-data"
+import { useClient } from "@/lib/client-context"
 import Link from "next/link"
 
 const COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#6b7280"]
 
 export default function RTQDashboard() {
-  const { client, financialProfile, investmentPreferences, riskAssessment, suggestedAssetAllocation, investmentConstraints } = carinaRTQData
+  const { rtqData, ipsData, profileComparison, currentClient } = useClient()
+  const { client, financialProfile, investmentPreferences, riskAssessment, suggestedAssetAllocation, investmentConstraints } = rtqData
 
   // Prepare pie chart data for suggested allocation
   const pieChartData = [
@@ -82,16 +83,16 @@ export default function RTQDashboard() {
 
   // Comparison with IPS
   const allocationComparison = [
-    { name: "Equity", RTQ: suggestedAssetAllocation.equity, IPS: carinaIPSData.targetAssetAllocation.allocations[0].targetAllocation },
-    { name: "Fixed Income", RTQ: suggestedAssetAllocation.fixedIncome, IPS: carinaIPSData.targetAssetAllocation.allocations[1].targetAllocation },
-    { name: "Alternatives", RTQ: suggestedAssetAllocation.alternatives, IPS: carinaIPSData.targetAssetAllocation.allocations[2].targetAllocation },
-    { name: "Cash", RTQ: suggestedAssetAllocation.cash, IPS: carinaIPSData.targetAssetAllocation.allocations[3].targetAllocation },
+    { name: "Equity", RTQ: suggestedAssetAllocation.equity, IPS: ipsData.targetAssetAllocation.allocations[0].targetAllocation },
+    { name: "Fixed Income", RTQ: suggestedAssetAllocation.fixedIncome, IPS: ipsData.targetAssetAllocation.allocations[1].targetAllocation },
+    { name: ipsData.targetAssetAllocation.allocations[2].assetClass, RTQ: (suggestedAssetAllocation as Record<string, number>).alternatives || (suggestedAssetAllocation as Record<string, number>).realAssets || 0, IPS: ipsData.targetAssetAllocation.allocations[2].targetAllocation },
+    { name: "Cash", RTQ: suggestedAssetAllocation.cash, IPS: ipsData.targetAssetAllocation.allocations[3].targetAllocation },
   ]
 
-  const mismatchItems = profileComparisonData.filter((p) => p.status === "mismatch")
+  const mismatchItems = profileComparison.filter((p) => p.status === "mismatch")
 
   return (
-    <AdvisorLayout selectedClientId="carina-voss">
+    <AdvisorLayout>
       <div className="space-y-8">
         {/* Page Header */}
         <div className="flex items-center justify-between">
@@ -141,7 +142,7 @@ export default function RTQDashboard() {
                     {mismatchItems.length} Discrepancies Found with IPS
                   </h3>
                   <p className="text-sm text-muted-foreground mt-1">
-                    The RTQ results suggest a {riskAssessment.riskProfile} profile, but the IPS is set for {carinaIPSData.riskTolerance}. 
+                    The RTQ results suggest a {riskAssessment.riskProfile} profile, but the IPS is set for {ipsData.riskTolerance}. 
                     This significant divergence should be discussed with the client.
                   </p>
                 </div>
@@ -524,7 +525,7 @@ export default function RTQDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {profileComparisonData.map((item, index) => (
+                  {profileComparison.map((item, index) => (
                     <div key={index} className="flex items-center gap-4 p-4 rounded-lg bg-muted/50">
                       <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0">
                         {item.status === "mismatch" ? (

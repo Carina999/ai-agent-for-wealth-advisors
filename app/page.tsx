@@ -1,6 +1,5 @@
 "use client"
 
-import { useState } from "react"
 import {
   AlertTriangle,
   TrendingUp,
@@ -9,13 +8,9 @@ import {
   ChevronRight,
   AlertCircle,
   CheckCircle2,
-  Clock,
   DollarSign,
-  PieChart,
-  Target,
   User,
   Building,
-  Briefcase,
 } from "lucide-react"
 import {
   PieChart as RechartsPieChart,
@@ -33,67 +28,67 @@ import {
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Progress } from "@/components/ui/progress"
 import { AdvisorLayout } from "@/components/advisor-layout"
-import {
-  clients,
-  carinaIPSData,
-  carinaRTQData,
-  carinaEstateData,
-  profileComparisonData,
-  aiSuggestedActions,
-  meetingTopics,
-} from "@/lib/mock-data"
+import { useClient } from "@/lib/client-context"
 import Link from "next/link"
 
 const COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#6b7280"]
 
 export default function ClientOverviewDashboard() {
-  const [selectedClientId] = useState("carina-voss")
-  const client = clients.find((c) => c.id === selectedClientId) || clients[0]
+  const {
+    currentClient,
+    ipsData,
+    rtqData,
+    profileComparison,
+    aiSuggestions,
+  } = useClient()
 
   // Prepare allocation comparison data for chart
-  const allocationComparisonData = [
-    {
-      name: "Equity",
-      IPS: carinaIPSData.targetAssetAllocation.allocations[0].targetAllocation,
-      RTQ: carinaRTQData.suggestedAssetAllocation.equity,
-    },
-    {
-      name: "Fixed Income",
-      IPS: carinaIPSData.targetAssetAllocation.allocations[1].targetAllocation,
-      RTQ: carinaRTQData.suggestedAssetAllocation.fixedIncome,
-    },
-    {
-      name: "Alternatives",
-      IPS: carinaIPSData.targetAssetAllocation.allocations[2].targetAllocation,
-      RTQ: carinaRTQData.suggestedAssetAllocation.alternatives,
-    },
-    {
-      name: "Cash",
-      IPS: carinaIPSData.targetAssetAllocation.allocations[3].targetAllocation,
-      RTQ: carinaRTQData.suggestedAssetAllocation.cash,
-    },
-  ]
+  const allocationComparisonData = ipsData.targetAssetAllocation.allocations.map((alloc) => {
+    const rtqKey = alloc.assetClass.toLowerCase().replace(/\s+/g, "") as keyof typeof rtqData.suggestedAssetAllocation
+    // Handle different naming conventions
+    let rtqValue = 0
+    if (alloc.assetClass === "Equity") {
+      rtqValue = rtqData.suggestedAssetAllocation.equity
+    } else if (alloc.assetClass === "Fixed Income") {
+      rtqValue = rtqData.suggestedAssetAllocation.fixedIncome
+    } else if (alloc.assetClass === "Alternatives" || alloc.assetClass === "Real Assets") {
+      rtqValue = (rtqData.suggestedAssetAllocation as Record<string, number>).alternatives || 
+                 (rtqData.suggestedAssetAllocation as Record<string, number>).realAssets || 0
+    } else if (alloc.assetClass === "Cash" || alloc.assetClass === "Cash & Equivalents") {
+      rtqValue = rtqData.suggestedAssetAllocation.cash
+    }
+    return {
+      name: alloc.assetClass,
+      IPS: alloc.targetAllocation,
+      RTQ: rtqValue,
+    }
+  })
 
   // Prepare pie chart data for IPS allocation
-  const pieChartData = carinaIPSData.targetAssetAllocation.allocations.map((a) => ({
+  const pieChartData = ipsData.targetAssetAllocation.allocations.map((a) => ({
     name: a.assetClass,
     value: a.targetAllocation,
   }))
 
-  const highPriorityAlerts = client.alerts.filter((a) => a.priority === "high")
-  const mismatchCount = profileComparisonData.filter((p) => p.status === "mismatch").length
+  const highPriorityAlerts = currentClient.alerts.filter((a) => a.priority === "high")
+  const mismatchCount = profileComparison.filter((p) => p.status === "mismatch").length
+
+  // Format next meeting date
+  const formatNextMeeting = (dateStr: string) => {
+    const date = new Date(dateStr)
+    return date.toLocaleDateString("en-US", { month: "short", day: "numeric" })
+  }
 
   return (
-    <AdvisorLayout selectedClientId={selectedClientId}>
+    <AdvisorLayout>
       <div className="space-y-8">
         {/* Page Header */}
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-semibold text-foreground">Client Overview</h1>
             <p className="text-muted-foreground mt-1">
-              Comprehensive view of {client.name}&apos;s financial profile and documents
+              Comprehensive view of {currentClient.name}&apos;s financial profile and documents
             </p>
           </div>
           <div className="flex items-center gap-3">
@@ -151,7 +146,7 @@ export default function ClientOverviewDashboard() {
                 </Badge>
               </div>
               <div className="text-2xl font-semibold text-foreground mb-1">
-                ${(client.totalAssets / 1000000).toFixed(2)}M
+                ${(currentClient.totalAssets / 1000000).toFixed(2)}M
               </div>
               <div className="text-sm text-muted-foreground">Total Assets Under Management</div>
             </CardContent>
@@ -163,12 +158,16 @@ export default function ClientOverviewDashboard() {
                 <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center">
                   <AlertTriangle className="w-5 h-5 text-amber-600" />
                 </div>
-                <Badge variant="secondary" className="bg-amber-100 text-amber-700">
-                  {mismatchCount} Issues
+                <Badge variant="secondary" className={mismatchCount > 0 ? "bg-amber-100 text-amber-700" : "bg-green-100 text-green-700"}>
+                  {mismatchCount > 0 ? `${mismatchCount} Issues` : "Aligned"}
                 </Badge>
               </div>
-              <div className="text-2xl font-semibold text-foreground mb-1">Profile Mismatch</div>
-              <div className="text-sm text-muted-foreground">IPS vs RTQ discrepancies found</div>
+              <div className="text-2xl font-semibold text-foreground mb-1">
+                {mismatchCount > 0 ? "Profile Mismatch" : "Profile Aligned"}
+              </div>
+              <div className="text-sm text-muted-foreground">
+                {mismatchCount > 0 ? "IPS vs RTQ discrepancies found" : "IPS and RTQ are aligned"}
+              </div>
             </CardContent>
           </Card>
 
@@ -179,7 +178,7 @@ export default function ClientOverviewDashboard() {
                   <FileText className="w-5 h-5 text-blue-600" />
                 </div>
               </div>
-              <div className="text-2xl font-semibold text-foreground mb-1">{client.documents.length}</div>
+              <div className="text-2xl font-semibold text-foreground mb-1">{currentClient.documents.length}</div>
               <div className="text-sm text-muted-foreground">Documents Processed</div>
             </CardContent>
           </Card>
@@ -191,7 +190,9 @@ export default function ClientOverviewDashboard() {
                   <Calendar className="w-5 h-5 text-green-600" />
                 </div>
               </div>
-              <div className="text-2xl font-semibold text-foreground mb-1">Apr 20</div>
+              <div className="text-2xl font-semibold text-foreground mb-1">
+                {formatNextMeeting(currentClient.nextMeeting)}
+              </div>
               <div className="text-sm text-muted-foreground">Next Scheduled Meeting</div>
             </CardContent>
           </Card>
@@ -217,7 +218,7 @@ export default function ClientOverviewDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {profileComparisonData.slice(0, 5).map((item, index) => (
+                  {profileComparison.slice(0, 5).map((item, index) => (
                     <div key={index} className="flex items-center gap-4 p-3 rounded-lg bg-muted/50">
                       <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0">
                         {item.status === "mismatch" ? (
@@ -307,7 +308,7 @@ export default function ClientOverviewDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {carinaIPSData.clientProfile.accounts.map((account, index) => (
+                  {ipsData.clientProfile.accounts.map((account, index) => (
                     <div key={index} className="flex items-center justify-between p-4 rounded-lg border border-border">
                       <div className="flex items-center gap-4">
                         <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
@@ -353,27 +354,29 @@ export default function ClientOverviewDashboard() {
                     <User className="w-8 h-8 text-primary" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-foreground">{client.name}</h3>
-                    <p className="text-sm text-muted-foreground">{client.email}</p>
-                    <p className="text-sm text-muted-foreground">{client.phone}</p>
+                    <h3 className="font-semibold text-foreground">{currentClient.name}</h3>
+                    <p className="text-sm text-muted-foreground">{currentClient.email}</p>
+                    <p className="text-sm text-muted-foreground">{currentClient.phone}</p>
                   </div>
                 </div>
                 <div className="pt-4 border-t border-border space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-muted-foreground">Risk Profile (IPS)</span>
-                    <Badge className="bg-primary/10 text-primary">{carinaIPSData.riskTolerance}</Badge>
+                    <Badge className="bg-primary/10 text-primary">{ipsData.riskTolerance}</Badge>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-muted-foreground">Risk Profile (RTQ)</span>
-                    <Badge variant="secondary">{carinaRTQData.riskAssessment.riskProfile}</Badge>
+                    <Badge variant="secondary">{rtqData.riskAssessment.riskProfile}</Badge>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-muted-foreground">Time Horizon (IPS)</span>
-                    <span className="text-sm font-medium">{carinaIPSData.timeHorizon}</span>
+                    <span className="text-sm font-medium">{ipsData.timeHorizon}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-muted-foreground">ESG Preference</span>
-                    <Badge variant="secondary" className="bg-green-100 text-green-700">Yes</Badge>
+                    <Badge variant="secondary" className={rtqData.investmentConstraints.esgPreference ? "bg-green-100 text-green-700" : "bg-muted"}>
+                      {rtqData.investmentConstraints.esgPreference ? "Yes" : "No"}
+                    </Badge>
                   </div>
                 </div>
               </CardContent>
@@ -440,7 +443,7 @@ export default function ClientOverviewDashboard() {
                 </div>
               </CardHeader>
               <CardContent className="space-y-3">
-                {aiSuggestedActions.slice(0, 4).map((action) => (
+                {aiSuggestions.slice(0, 4).map((action) => (
                   <div
                     key={action.id}
                     className="p-3 rounded-lg bg-muted/50 border-l-4"
@@ -453,64 +456,15 @@ export default function ClientOverviewDashboard() {
                             : "#6b7280",
                     }}
                   >
-                    <div className="flex items-start gap-2">
-                      <Target className="w-4 h-4 mt-0.5 text-muted-foreground flex-shrink-0" />
+                    <div className="flex items-start justify-between gap-2">
                       <div>
                         <p className="text-sm font-medium text-foreground">{action.action}</p>
-                        <p className="text-xs text-muted-foreground mt-1">{action.category}</p>
+                        <Badge variant="secondary" className="mt-1 text-xs">
+                          {action.category}
+                        </Badge>
                       </div>
                     </div>
                   </div>
-                ))}
-              </CardContent>
-            </Card>
-
-            {/* Meeting Preparation */}
-            <Card>
-              <CardHeader className="pb-4">
-                <CardTitle className="text-lg">Meeting Prep Topics</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-2">
-                  {meetingTopics.slice(0, 5).map((topic, index) => (
-                    <li key={index} className="flex items-start gap-2 text-sm">
-                      <CheckCircle2 className="w-4 h-4 mt-0.5 text-muted-foreground flex-shrink-0" />
-                      <span className="text-muted-foreground">{topic}</span>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-
-            {/* Documents Status */}
-            <Card>
-              <CardHeader className="pb-4">
-                <CardTitle className="text-lg">Document Status</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {client.documents.map((doc) => (
-                  <Link
-                    key={doc.id}
-                    href={`/client/${doc.type.toLowerCase()}`}
-                    className="flex items-center justify-between p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
-                  >
-                    <div className="flex items-center gap-3">
-                      <FileText className="w-4 h-4 text-muted-foreground" />
-                      <span className="text-sm font-medium">{doc.name}</span>
-                    </div>
-                    <Badge
-                      variant="secondary"
-                      className={
-                        doc.status === "processed"
-                          ? "bg-green-100 text-green-700"
-                          : doc.status === "processing"
-                            ? "bg-blue-100 text-blue-700"
-                            : "bg-gray-100 text-gray-700"
-                      }
-                    >
-                      {doc.status}
-                    </Badge>
-                  </Link>
                 ))}
               </CardContent>
             </Card>
