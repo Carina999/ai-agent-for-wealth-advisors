@@ -20,15 +20,7 @@ import { Badge } from "@/components/ui/badge"
 import { Textarea } from "@/components/ui/textarea"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { AdvisorLayout } from "@/components/advisor-layout"
-import {
-  clients,
-  carinaIPSData,
-  carinaRTQData,
-  carinaEstateData,
-  profileComparisonData,
-  aiSuggestedActions,
-  meetingTopics,
-} from "@/lib/mock-data"
+import { useClient } from "@/lib/client-context"
 
 interface Message {
   id: string
@@ -273,6 +265,7 @@ Would you like me to elaborate on any specific aspect of Carina's financial prof
 }
 
 export default function AIAssistantPage() {
+  const { currentClient, ipsData, rtqData, estateData, profileComparison, aiSuggestions, meetingTopics } = useClient()
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "1",
@@ -331,7 +324,7 @@ How can I help you prepare for your next client meeting?`,
   }
 
   return (
-    <AdvisorLayout selectedClientId="carina-voss">
+    <AdvisorLayout>
       <div className="h-[calc(100vh-8rem)] flex gap-6">
         {/* Main Chat Area */}
         <div className="flex-1 flex flex-col">
